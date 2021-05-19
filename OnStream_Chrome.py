@@ -18,6 +18,8 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from conftest import all_ld, active_service
 
+
+
 browser = os.path.basename(__file__).split("_")[1]
 plat = platform.platform().split('-')
 device = str(plat[0] + "-" + plat[1])
@@ -2702,45 +2704,84 @@ class TestLiveTV:
         try:
             WebDriverWait(self.driver, 30).until(ec.presence_of_element_located((By.XPATH, '//*[@id="root"]/div/div/div/div[2]/div/div[1]/div[2]/span/span[2]/a/span'))).click()  # Click on the Guide Button
             WebDriverWait(self.driver, 10).until(ec.visibility_of_element_located((By.XPATH, '//img[@alt="%s"]' % first_channel)))  # Wait For the Guide to Populate
-            channel = self.driver.find_elements(By.XPATH, '//div[@class="_3oY1sebpEJCA1_vGf8PEBX"]')  # Get a List of all the Current Programs Play Buttons
-            for i in range(100):  # Go through that list of Programs and Select the Play button for them
-                try:
-                    channel[i].click()
-                    if WebDriverWait(self.driver, 10).until(ec.presence_of_element_located((By.XPATH, '//img[@alt="%s"]' % call_letters))):  # wait for first channel image to appear
-                        break  # Break the Loop if the Program selected is the correct one
-                    else:  # If the Program was not the correct one, continue the for loop
-                        WebDriverWait(self.driver, 10).until(ec.presence_of_element_located((By.XPATH, '//span[contains(text(), "FULL TV GUIDE")]'))).click()  # click back button
-                        WebDriverWait(self.driver, 10).until(ec.visibility_of_element_located((By.XPATH, '//img[@alt="%s"]' % first_channel)))  # wait for the guide to populate
+
+            counter=0
+            for logo in all_ld:
+                channel = self.driver.find_elements(By.XPATH,
+                                                    '//div[@class="_3oY1sebpEJCA1_vGf8PEBX"]')  # Get a List of all the Current Programs Play Buttons
+                for i in range(counter,500):  # Go through that list of Programs and Select the Play button for them
+                    try:
+                        call_signs = logo['callsign']
+                        counter += 1
+                        channel[i].click()
+
+                        if WebDriverWait(self.driver, 10).until(ec.presence_of_element_located((By.XPATH, '//img[@alt="%s"]' % call_signs))):  # wait for first channel image to appear
+                            break  # Break the Loop if the Program selected is the correct one
+                            pass
+                        else:  # If the Program was not the correct one, continue the for loop
+                            WebDriverWait(self.driver, 10).until(ec.presence_of_element_located((By.XPATH, '//span[contains(text(), "FULL TV GUIDE")]'))).click()  # click back button
+                            WebDriverWait(self.driver, 10).until(ec.visibility_of_element_located((By.XPATH, '//img[@alt="%s"]' % first_channel)))  # wait for the guide to populate
+                            pass
+                    except TimeoutException:
+                        button = self.driver.find_elements(By.XPATH, '//div[@class="JuHZzfNzpm4bD3481WYQW jEGIqrEa7SjV1rD7HxHBc"]')
+                        if len(button) == 1:  # see if exit button is there
+                            WebDriverWait(self.driver, 10).until(ec.visibility_of_element_located((By.XPATH, '//button[@class="_1Xyb-h8ETwWmEllf3HIy58"]'))).click()  # click exit button
+                            WebDriverWait(self.driver, 10).until(ec.visibility_of_element_located((By.XPATH, '//img[@alt="%s"]' % first_channel)))  # wait for the guide to populate
+                            pass
+                        elif len(button) == 0:  # see if exit button is there
+                            pass
+                    except NoSuchElementException:
+                        if not self.driver.find_element(By.XPATH, '//button[@class="_1Xyb-h8ETwWmEllf3HIy58"]'):  # see if exit button is there
+                            pass
+                        elif self.driver.find_element(By.XPATH, '//button[@class="_1Xyb-h8ETwWmEllf3HIy58"]'):  # see if exit button is there
+                            WebDriverWait(self.driver, 10).until(ec.visibility_of_element_located((By.XPATH, '//button[@class="_1Xyb-h8ETwWmEllf3HIy58"]'))).click()  # click exit button
+                            WebDriverWait(self.driver, 10).until(ec.visibility_of_element_located((By.XPATH, '//img[@alt="%s"]' % first_channel)))  # wait for the guide to populate
+                            pass
+                    except ElementClickInterceptedException:
                         pass
-                except TimeoutException:
-                    button = self.driver.find_elements(By.XPATH, '//div[@class="JuHZzfNzpm4bD3481WYQW jEGIqrEa7SjV1rD7HxHBc"]')
-                    if len(button) == 1:  # see if exit button is there
-                        WebDriverWait(self.driver, 10).until(ec.visibility_of_element_located((By.XPATH, '//button[@class="_1Xyb-h8ETwWmEllf3HIy58"]'))).click()  # click exit button
-                        WebDriverWait(self.driver, 10).until(ec.visibility_of_element_located((By.XPATH, '//img[@alt="%s"]' % first_channel)))  # wait for the guide to populate
+                    except ElementNotInteractableException:
                         pass
-                    elif len(button) == 0:  # see if exit button is there
-                        pass
-                except NoSuchElementException:
-                    if not self.driver.find_element(By.XPATH, '//button[@class="_1Xyb-h8ETwWmEllf3HIy58"]'):  # see if exit button is there
-                        pass
-                    elif self.driver.find_element(By.XPATH, '//button[@class="_1Xyb-h8ETwWmEllf3HIy58"]'):  # see if exit button is there
-                        WebDriverWait(self.driver, 10).until(ec.visibility_of_element_located((By.XPATH, '//button[@class="_1Xyb-h8ETwWmEllf3HIy58"]'))).click()  # click exit button
-                        WebDriverWait(self.driver, 10).until(ec.visibility_of_element_located((By.XPATH, '//img[@alt="%s"]' % first_channel)))  # wait for the guide to populate
-                        pass
-                except ElementClickInterceptedException:
-                    pass
-                except ElementNotInteractableException:
-                    pass
-            WebDriverWait(self.driver, 30).until_not(ec.presence_of_element_located((By.XPATH, '//div[@class="nvI2gN1AMYiKwYvKEdfIc schema_accent_border-bottom schema_accent_border-right schema_accent_border-left"]')))  # Wait for the loading screen to disappear
-            WebDriverWait(self.driver, 30).until(ec.visibility_of_element_located((By.XPATH, '//img[@id="bmpui-id-32"]')))  # Wait for the LiveTV to Start
-            self.driver.find_element(By.XPATH, '//span[@class="bmpui-ui-label bmpui-miniEpgToggleLabel"]').click()  # click on the mini guide
-            self.driver.find_element(By.XPATH, '//div[@class="bmpui-container-wrapper"]').is_displayed()  # Channel logo top right
-            self.driver.find_element(By.XPATH, '//img[@alt="%s"]' % call_letters).is_displayed()  # Channel logo in mini guide
-            self.driver.find_element(By.XPATH, '//div[@class="bmpui-ui-container bmpui-divider"]').is_displayed()  # divider
-            self.driver.find_element(By.XPATH, '//div[@class="bmpui-ui-container bmpui-fullTvGuideIcon"]').is_displayed()  # Left Arrow
-            self.driver.find_element(By.XPATH, '//span[@class="bmpui-ui-label bmpui-miniEpgToggleLabel"]').is_displayed()  # Down Arrow
-            self.driver.find_element(By.XPATH, '//div[@class="_2ce79Sw43-fKTd_hNeR50P"]').is_displayed()  # Right Arrow
-            self.driver.find_element(By.XPATH, '//div[@class="bmpui-ui-container bmpui-moreInfoIcon"]').is_displayed()  # info emblem
+                counter += 1
+                WebDriverWait(self.driver, 30).until_not(ec.presence_of_element_located((By.XPATH, '//div[@class="nvI2gN1AMYiKwYvKEdfIc schema_accent_border-bottom schema_accent_border-right schema_accent_border-left"]')))  # Wait for the loading screen to disappear
+                WebDriverWait(self.driver, 30).until(ec.visibility_of_element_located((By.XPATH, '//*[@class="bmpui-ui-image bmpui-channelLogo"]')))  # Wait for the LiveTV to Start
+                self.driver.find_element(By.XPATH, '//*[@class="bmpui-ui-image bmpui-channelLogo"]').is_displayed()  # Channel logo top right
+                logos = self.driver.find_elements(By.XPATH, '//*[@class="bmpui-ui-image bmpui-channelLogo"]')  # Channel Logos
+                #check for the logo Url is correct.
+                for temp_logo in logos:
+                    logo_url = temp_logo.get_attribute('src')
+                mylogger.info(logo_url)
+                for logo in all_ld:
+                    if (logo["logo_url"] == logo_url):
+                        mylogger.info(logo)
+                        if logo['callsign'] == call_signs:
+                            assert True
+                        else:
+                            assert False
+                #check for the more info button
+
+                 # click on the mini guide"]').click()  # click on the more info
+                self.driver.find_element(By.XPATH,'//span[@class="bmpui-ui-label bmpui-moreInfoLabel"]').click()
+
+                self.driver.find_element(By.XPATH,'//*[@id="dish-campustv-player"]/div[1]/div[1]/div/div/div/button').click()
+                self.driver.find_element(By.XPATH,'//span[@class="bmpui-ui-label bmpui-miniEpgToggleLabel"]').click()  # click on the mini guide
+                self.driver.find_element(By.XPATH, '//div[@class="bmpui-container-wrapper"]')
+                self.driver.find_element(By.XPATH, '//img[@alt="%s"]' % call_signs).is_displayed()  # Channel logo in mini guide
+                self.driver.find_element(By.XPATH, '//div[@class="bmpui-ui-container bmpui-divider"]').is_displayed()  # divider
+                self.driver.find_element(By.XPATH, '//div[@class="bmpui-ui-container bmpui-fullTvGuideIcon"]').is_displayed()  # Left Arrow
+                self.driver.find_element(By.XPATH, '//span[@class="bmpui-ui-label bmpui-miniEpgToggleLabel"]').is_displayed()  # Down Arrow
+                self.driver.find_element(By.XPATH, '//div[@class="_2ce79Sw43-fKTd_hNeR50P"]').is_displayed()  # Right Arrow
+                self.driver.find_element(By.XPATH, '//div[@class="bmpui-ui-container bmpui-moreInfoIcon"]').is_displayed()  # info emblem
+                self.driver.find_element(By.XPATH, '//div[@class="_2ce79Sw43-fKTd_hNeR50P"]').click()  # Right Arrow
+                time.sleep(2)
+                self.driver.find_element(By.XPATH,'//div[@class="_3cN_BrF9zH0Ys_TmpK60W"]').click()  # Left Arrow
+                time.sleep(2)
+                self.driver.find_element(By.XPATH,
+                                         '//span[@class="bmpui-ui-label bmpui-miniEpgToggleLabel"]').click()  # click on the mini guide
+
+                WebDriverWait(self.driver, 10).until(ec.presence_of_element_located(
+                    (By.XPATH, '//span[contains(text(), "FULL TV GUIDE")]'))).click()  # click back button
+                time.sleep(10)
+
         except NoSuchElementException:
             self.driver.save_screenshot(self.direct + self.name + ".png")
             body = [
@@ -2893,8 +2934,52 @@ class TestLiveTV:
                 client_setup.write_points(body)
                 assert False, "timeout error"
 
-    def test_text_displayed(self, onstream_url, onstream_version, client_setup):
+    def test_text_displayed(self, onstream_url, onstream_version, first_channel, call_letters,client_setup):
         try:
+            WebDriverWait(self.driver, 10).until(ec.visibility_of_element_located(
+                (By.XPATH, '//img[@alt="%s"]' % first_channel)))  # Wait For the Guide to Populate
+            channel = self.driver.find_elements(By.XPATH,
+                                                '//div[@class="_3oY1sebpEJCA1_vGf8PEBX"]')  # Get a List of all the Current Programs Play Buttons
+            for i in range(500):  # Go through that list of Programs and Select the Play button for them
+                try:
+                    channel[i].click()
+
+                    if WebDriverWait(self.driver, 10).until(ec.presence_of_element_located(
+                            (By.XPATH, '//img[@alt="%s"]' % call_letters))):  # wait for first channel image to appear
+                        break  # Break the Loop if the Program selected is the correct one
+                        pass
+                    else:  # If the Program was not the correct one, continue the for loop
+                        WebDriverWait(self.driver, 10).until(ec.presence_of_element_located(
+                            (By.XPATH, '//span[contains(text(), "FULL TV GUIDE")]'))).click()  # click back button
+                        WebDriverWait(self.driver, 10).until(ec.visibility_of_element_located(
+                            (By.XPATH, '//img[@alt="%s"]' % first_channel)))  # wait for the guide to populate
+                        pass
+                except TimeoutException:
+                    button = self.driver.find_elements(By.XPATH,
+                                                       '//div[@class="JuHZzfNzpm4bD3481WYQW jEGIqrEa7SjV1rD7HxHBc"]')
+                    if len(button) == 1:  # see if exit button is there
+                        WebDriverWait(self.driver, 10).until(ec.visibility_of_element_located(
+                            (By.XPATH, '//button[@class="_1Xyb-h8ETwWmEllf3HIy58"]'))).click()  # click exit button
+                        WebDriverWait(self.driver, 10).until(ec.visibility_of_element_located(
+                            (By.XPATH, '//img[@alt="%s"]' % first_channel)))  # wait for the guide to populate
+                        pass
+                    elif len(button) == 0:  # see if exit button is there
+                        pass
+                except NoSuchElementException:
+                    if not self.driver.find_element(By.XPATH,
+                                                    '//button[@class="_1Xyb-h8ETwWmEllf3HIy58"]'):  # see if exit button is there
+                        pass
+                    elif self.driver.find_element(By.XPATH,
+                                                  '//button[@class="_1Xyb-h8ETwWmEllf3HIy58"]'):  # see if exit button is there
+                        WebDriverWait(self.driver, 10).until(ec.visibility_of_element_located(
+                            (By.XPATH, '//button[@class="_1Xyb-h8ETwWmEllf3HIy58"]'))).click()  # click exit button
+                        WebDriverWait(self.driver, 10).until(ec.visibility_of_element_located(
+                            (By.XPATH, '//img[@alt="%s"]' % first_channel)))  # wait for the guide to populate
+                        pass
+                except ElementClickInterceptedException:
+                    pass
+                except ElementNotInteractableException:
+                    pass
             self.driver.find_element(By.XPATH, '//*[@id="dish-campustv-player"]/div[4]/div/div/div/div/div[1]/div[1]').is_displayed()  # TODAY
             self.driver.find_element(By.XPATH, '//div[contains(text(), "%s")]' % self.now).is_displayed()  # Time 1
             self.driver.find_element(By.XPATH, '//div[contains(text(), "%s")]' % self.now1).is_displayed()  # Time 2
@@ -3583,6 +3668,7 @@ class TestLiveTV:
 
 
 @pytest.mark.usefixtures("setup", "directory")
+
 class TestSupportSettingsScreen:
     def test_images_displayed(self, onstream_url, onstream_version, client_setup):
         try:
