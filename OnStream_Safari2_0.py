@@ -10,20 +10,14 @@ from selenium.common.exceptions import NoSuchElementException, TimeoutException,
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.keys import Keys
 from datetime import datetime, timedelta
 from influxdb import InfluxDBClient
-from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
 from conftest import all_ld, active_service
-#from UI_Constant import *
+from UI_Constant import *
 import UI_Constant
-import logging
-import json
-logging.basicConfig(level=logging.DEBUG)
-mylogger = logging.getLogger()
+
+
 browser = os.path.basename(__file__).split("_")[1]
 plat = platform.platform().split('-')
 device = str(plat[0] + "-" + plat[1])
@@ -67,14 +61,14 @@ def auto_start(request, onstream_version, onstream_url, client_setup):
                 "Software": onstream_version,
                 "Test": 1,
                 "URL": onstream_url,
-                "Browser": "Chrome",
+                "Browser": "Safari",
                 "Device": device,
             },
             "time": time.time_ns(),
             "fields": {
                 "events_title": "test start",
                 "text": "This is the start of test " + "1" + " on firmware " + onstream_version + " tested on " + onstream_url,
-                "tags": "Onstream" + "," + "Chrome" + "," + "1" + "," + onstream_version + "," + onstream_url
+                "tags": "Onstream" + "," + "Safari" + "," + "1" + "," + onstream_version + "," + onstream_url
             }
         }
     ]
@@ -88,18 +82,18 @@ def auto_start(request, onstream_version, onstream_url, client_setup):
                     "Software": onstream_version,
                     "Test": 1,
                     "URL": onstream_url,
-                    "Browser": "Chrome",
+                    "Browser": "Safari",
                     "Device": device,
                 },
                 "time": time.time_ns(),
                 "fields": {
                     "events_title": "test end",
                     "text": "This is the end of test " + "1" + " on firmware " + onstream_version + " tested on " + onstream_url,
-                    "tags": "Onstream" + "," + "Chrome" + "," + "1" + "," + onstream_version + "," + onstream_url
+                    "tags": "Onstream" + "," + "Safari" + "," + "1" + "," + onstream_version + "," + onstream_url
                 }
             }
         ]
-        client_setup.write_points(test_end)
+        ##client_setup.write_points(test_end)
 
         Pictures = os.path.abspath(os.curdir) + os.sep + 'Pictures' + os.sep
         Duration = os.path.abspath(os.curdir) + os.sep + 'Pictures' + os.sep
@@ -151,7 +145,6 @@ def setup(request, onstream_url, custom_logo):
     request.cls.logo = logo
     yield
     driver.quit()
-
 
 @pytest.fixture(scope="class")
 def current_time(request):
@@ -345,53 +338,64 @@ class TestVersion:
 class TestHomeScreen:
     def test_hero_screen(self, onstream_version, onstream_url, client_setup):
         try:
-            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH,UI_Constant.home_button)))  # Wait for the Home Page to Load
-            time.sleep(5)
-            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH,'//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[1]/button'))).click() #1st button click
-            time.sleep(3)
-            self.driver.find_element(By.XPATH, '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[2]/button').click() # Second button click
-            time.sleep(3)
-            self.driver.find_element(By.XPATH, '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[3]/button').click()     # Third button click
-            time.sleep(5)
-            self.driver.find_element(By.XPATH, '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[4]/button').click() #Fourth button click
-            time.sleep(5)
-            self.driver.find_element(By.XPATH,'//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[1]/button').click()  # 1st click
-            time.sleep(3)
-            self.driver.find_element(By.XPATH,'//*[@id="HERO_CAROUSEL_CONTAINER"]/div/div/div/div[2]/div/div/div/div/div/div/button').click()  # Springs pledge learn more
-            time.sleep(3)
-            mif = self.driver.find_element(By.XPATH, '//*[@id="root"]/div[2]/div/div[2]/div[2]/button') # more info button
-            time.sleep(10)
-            self.driver.execute_script('arguments[0].scrollIntoView(true);', mif)  # Scroll Down to the Bottom
-            time.sleep(5)
-            self.driver.switch_to.window(self.driver.window_handles[0])  # Switch to previous tab
-            time.sleep(5)
-
-
-
-
-            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[1]/button'))).click()  # 2nd  button click
-            time.sleep(3)
-            self.driver.find_element(By.XPATH,'//*[@id="HERO_CAROUSEL_CONTAINER"]/div/div/div/div[2]/div/div/div/div/div/button').click()  # Watch Live 1st dot
-            time.sleep(10)
-            self.driver.find_element(By.XPATH, '//*[@id="PLAYER_CLOSE_BTN"]/img').click()  # Close  Live  Click
-            time.sleep(3)
-            self.driver.find_element(By.XPATH,'//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[2]/button').click()  # third button click
-            time.sleep(3)
-            self.driver.find_element(By.XPATH,'//*[@id="HERO_CAROUSEL_CONTAINER"]/div/div/div/div[3]/div/div/div/div/div/button').click()  # watch live
-            time.sleep(10)
-            self.driver.find_element(By.XPATH, '//*[@id="PLAYER_CLOSE_BTN"]/img').click()  # Close  Live  Click
-            time.sleep(5)
-            self.driver.find_element(By.XPATH,'//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[3]/button').click()  # Third button click
-            time.sleep(3)
-            self.driver.find_element(By.XPATH,'//*[@id="HERO_CAROUSEL_CONTAINER"]/div/div/div/div[4]/div/div/div/div/div/div/button').click()  # Resident Services learn more  click
-            time.sleep(3)
-            self.driver.find_element(By.XPATH, '//*[@id="root"]/div[2]/div/div[2]/div[2]/button').click()  # Resident Services learn more  click
-            ##time.sleep(10)
-            ##self.driver.switch_to.window(self.driver.window_handles[0])  # Switch to previous tab
-            ##time.sleep(4)
-            ##self.driver.fullscreen_window()
-            '''
             WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, UI_Constant.home_button)))  # Wait for the Home Page to Load
+            time.sleep(5)
+            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located(
+                (By.XPATH, '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[1]/button'))).click()  # 1st button click
+            time.sleep(3)
+            self.driver.find_element(By.XPATH,
+                                     '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[2]/button').click()  # Second button click
+            time.sleep(3)
+            self.driver.find_element(By.XPATH,
+                                     '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[3]/button').click()  # Third button click
+            time.sleep(5)
+            self.driver.find_element(By.XPATH,
+                                     '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[4]/button').click()  # Fourth button click
+            time.sleep(5)
+            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located(
+                (By.XPATH, '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[1]/button'))).click()  # 1st button click
+            time.sleep(3)
+            self.driver.find_element(By.XPATH,
+                                     '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/div/div/div[2]/div/div/div/div/div/div/button').click()  # springs pledge learn more
+            time.sleep(10)
+            ##self.driver.execute_script('arguments[0].scrollIntoView(true);', mif)  # Scroll Down to the Bottom
+            ##time.sleep(5)
+            self.driver.find_element(By.XPATH,
+                                     '//*[@id="root"]/div[2]/div/div[2]/div[2]/button').click()  # More Info Button
+            time.sleep(3)
+            self.driver.switch_to.window(self.driver.window_handles[0])  # Switch to previous tab
+            time.sleep(3)
+            self.driver.fullscreen_window()
+            self.driver.find_element(By.XPATH,
+                                     '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[2]/button').click()  # Second button click
+            time.sleep(5)
+            self.driver.find_element(By.XPATH,
+                                     '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/div/div/div[3]/div/div/div/div/div/button').click()  # watch live
+            time.sleep(10)
+            self.driver.find_element(By.XPATH, '//*[@id="PLAYER_CLOSE_BTN"]/img').click()  # Close  Live  Click
+            time.sleep(5)
+            self.driver.find_element(By.XPATH,
+                                     '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[3]/button').click()  # Third button click
+            time.sleep(10)
+            self.driver.find_element(By.XPATH,
+                                     '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/div/div/div[4]/div/div/div/div/div/button').click()  # watch live
+            time.sleep(10)
+            self.driver.find_element(By.XPATH, '//*[@id="PLAYER_CLOSE_BTN"]/img').click()  # Close  Live  Click
+            time.sleep(3)
+            self.driver.find_element(By.XPATH,
+                                     '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[4]/button').click()  # Fourth button click
+            time.sleep(5)
+            self.driver.find_element(By.XPATH,
+                                     '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/div/div/div[5]/div/div/div/div/div/div/button').click()  # Resident Services learn more  click
+            time.sleep(3)
+            self.driver.find_element(By.XPATH,
+                                     '//*[@id="root"]/div[2]/div/div[2]/div[2]/button').click()  # Resident Services learn more  click
+            time.sleep(3)
+            self.driver.switch_to.window(self.driver.window_handles[0])  # Switch to previous tab
+            time.sleep(4)
+            self.driver.fullscreen_window()
+            WebDriverWait(self.driver, 60).until(
+                ec.presence_of_element_located((By.XPATH, UI_Constant.home_button)))  # Wait for the Home Page to Load
             self.driver.find_element(By.XPATH,
                                      '//*[@id="HEADER_CONTAINER"]/div[1]/img').is_displayed()  # Springs Apartments logo is displayed
             self.driver.find_element(By.XPATH,
@@ -404,59 +408,6 @@ class TestHomeScreen:
                                      '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/div/div/div[2]/div/div/div/div/div/div[2]/div[1]/img').is_displayed()  # hero screen logo
             self.driver.find_element(By.XPATH,
                                      '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/div/div/div[2]/div/div/div/div/div/div[2]/div[2]/div[2]').is_displayed()  # rating,movie,time left
-
-
-
-
-            ##New class News&Weather
-            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH,UI_Constant.home_button)))  # Wait for the Home Page to Load
-            time.sleep(15)
-            self.driver.find_element(By.XPATH, '//*[@id="SWIMLANE_INNER_CONTAINER_0"]/div[1]/div').click()  # right arrow
-            time.sleep(5)
-            self.driver.find_element(By.XPATH,'//*[@id="SWIMLANE_INNER_CONTAINER_0"]/div[1]/div').click()  # left arrow
-            time.sleep(5)
-            self.driver.find_element(By.XPATH,'//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_0"]/div/button/img').click()  # 1st box click play
-            time.sleep(10)
-            self.driver.find_element(By.XPATH, '//*[@id="dish-bitmovin-player"]/div[4]/div/div[2]/div[1]/button/img').click()  #volume bar
-            time.sleep(10)
-            self.driver.find_element(By.XPATH, '///*[@id="dish-bitmovin-player"]/div[4]/div/div[2]/div[2]/button/img').click()  # caption click
-            time.sleep(15)
-            self.driver.find_element(By.XPATH, '//*[@id="subtitle-popper"]/div/ul/div[4]').click()  # english
-            time.sleep(3)
-            self.driver.find_element(By.XPATH,'//*[@id="TOGGLE_FULLSCREEN_BTN"]/img').click()  # fullscreen
-            time.sleep(3)
-            self.driver.find_element(By.XPATH, '//*[@id="PLAYER_CLOSE_BTN"]/img').click()  # third x
-            time.sleep(5)
-            self.driver.find_element(By.XPATH,'//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_1"]/div/button/img').click()  # second button click play
-            time.sleep(10)
-            self.driver.find_element(By.XPATH,'//*[@id="PLAYER_CLOSE_BTN"]/img').click()  # 2nd box x
-            time.sleep(10)
-            self.driver.find_element(By.XPATH,'//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_2"]/div/button/img').click()  # third button click play
-            time.sleep(5)
-            self.driver.find_element(By.XPATH,'//*[@id="PLAYER_CLOSE_BTN"]/img').click()  # third x
-            time.sleep(10)
-            self.driver.find_element(By.XPATH,'//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_2"]/div/button/img').click()  # fourth button click play
-            time.sleep(5)
-            self.driver.find_element(By.XPATH, '//*[@id="PLAYER_CLOSE_BTN"]/img').click()  # fourth button  x
-            time.sleep(10)
-            self.driver.find_element(By.XPATH,'//*[@id="SWIMLANE_INNER_CONTAINER_0"]/div[1]/div').click()  # right arrow
-            time.sleep(5)
-            self.driver.find_element(By.XPATH,'//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_4"]/div/button/img').click()  # fifth button click play
-            time.sleep(5)
-            self.driver.find_element(By.XPATH, '//*[@id="PLAYER_CLOSE_BTN"]/img').click()  # fifth button  x
-            self.driver.find_element(By.XPATH, '//*[@id="root"]/div/div/div[1]/div/div/div/div/div[2]/h2[1]').is_displayed() # Words News and Weather displayed
-            self.driver.find_element(By.XPATH,'//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_0"]/div/div[1]').is_displayed()  # square box
-            self.driver.find_element(By.XPATH,'// *[@ id = "ITEM_SWIMLANE_INNER_CONTAINER_0_0"] / div / div[1]').is_displayed()  # box background image
-            self.driver.find_element(By.XPATH, '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_0"]/div/div[3]/div[2]').is_displayed() # check logo on each box
-            self.driver.find_element(By.XPATH, '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_0"]/div/div[3]/div[3]/h2[1]').is_displayed() ## check title
-            self.driver.find_element(By.XPATH, '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_0"]/div/div[3]/div[3]/h2[2]').is_displayed() # check LIVE written and time remaining
-            self.driver.find_element(By.XPATH, '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_0"]/div/div[2]/span').is_displayed() # live button
-
-
-'''
-
-
-
         except NoSuchElementException:
             self.driver.save_screenshot(self.direct + self.name + ".png")
             body = [
@@ -478,6 +429,190 @@ class TestHomeScreen:
             ]
             client_setup.write_points(body)
            ## assert False, "Element was not found"
+        except TimeoutException:
+            self.driver.save_screenshot(self.direct + self.name + ".png")
+            loading_circle = self.driver.find_elements(By.XPATH,
+                                                       '//div[@class="nvI2gN1AMYiKwYvKEdfIc schema_accent_border-bottom schema_accent_border-right schema_accent_border-left"]')
+            no_streaming = self.driver.find_elements(By.XPATH,
+                                                     '//h1[contains(text(), "It appears that you are not able to connect to Streaming Services at this time.")]')
+            error_404 = self.driver.find_elements(By.XPATH, '//h1[contains(text(), "Oops! Error 404")]')
+            loading_element = self.driver.find_elements(By.XPATH, '//span[contains(text(), "Loading...")]')
+            went_wrong = self.driver.find_elements(By.XPATH,
+                                                   '//h2[contains(text(), "Something went wrong with the stream.")]')
+            if len(loading_circle) > 0:
+                body = [
+                    {
+                        "measurement": "OnStream",
+                        "tags": {
+                            "Software": onstream_version,
+                            "Test": 1,
+                            "Pytest": self.name,
+                            "URL": onstream_url,
+                            "Browser": "Chrome",
+                            "Device": device,
+                        },
+                        "time": time.time_ns(),
+                        "fields": {
+                            "loading_circle": 1,
+                        }
+                    }
+                ]
+                client_setup.write_points(body)
+                assert False, "Stuck on loading screen"
+            elif len(no_streaming) > 0:
+                body = [
+                    {
+                        "measurement": "OnStream",
+                        "tags": {
+                            "Software": onstream_version,
+                            "Test": 1,
+                            "Pytest": self.name,
+                            "URL": onstream_url,
+                            "Browser": "Chrome",
+                            "Device": device,
+                        },
+                        "time": time.time_ns(),
+                        "fields": {
+                            "unable_to_connect": 1,
+                        }
+                    }
+                ]
+                client_setup.write_points(body)
+                assert False, "It appears that you are not able to connect to Streaming Services at this time."
+            elif len(error_404) > 0:
+                body = [
+                    {
+                        "measurement": "OnStream",
+                        "tags": {
+                            "Software": onstream_version,
+                            "Test": 1,
+                            "Pytest": self.name,
+                            "URL": onstream_url,
+                            "Browser": "Chrome",
+                            "Device": device,
+                        },
+                        "time": time.time_ns(),
+                        "fields": {
+                            "error_404": 1,
+                        }
+                    }
+                ]
+                client_setup.write_points(body)
+                assert False, "404 error"
+            elif len(loading_element):
+                body = [
+                    {
+                        "measurement": "OnStream",
+                        "tags": {
+                            "Software": onstream_version,
+                            "Test": 1,
+                            "Pytest": self.name,
+                            "URL": onstream_url,
+                            "Browser": "Chrome",
+                            "Device": device,
+                        },
+                        "time": time.time_ns(),
+                        "fields": {
+                            "element_loading": 1,
+                        }
+                    }
+                ]
+                client_setup.write_points(body)
+                assert False, "Stuck loading an element"
+            elif len(went_wrong):
+                body = [
+                    {
+                        "measurement": "OnStream",
+                        "tags": {
+                            "Software": onstream_version,
+                            "Test": 1,
+                            "Pytest": self.name,
+                            "URL": onstream_url,
+                            "Browser": "Chrome",
+                            "Device": device,
+                        },
+                        "time": time.time_ns(),
+                        "fields": {
+                            "went_wrong": 1,
+                        }
+                    }
+                ]
+                client_setup.write_points(body)
+                assert False, "Something went wrong"
+            else:
+                body = [
+                    {
+                        "measurement": "OnStream",
+                        "tags": {
+                            "Software": onstream_version,
+                            "Test": 1,
+                            "Pytest": self.name,
+                            "URL": onstream_url,
+                            "Browser": "Chrome",
+                            "Device": device,
+                        },
+                        "time": time.time_ns(),
+                        "fields": {
+                            "timeout_exception": 1,
+                        }
+                    }
+                ]
+                client_setup.write_points(body)
+                assert False, "timeout error"
+
+    def test_news_and_weather(self, onstream_version, onstream_url, client_setup):
+        try:
+            WebDriverWait(self.driver, 60).until(
+                ec.presence_of_element_located((By.XPATH, UI_Constant.home_button)))  # Wait for the Home Page to Load
+            self.driver.find_element(By.XPATH,'//*[@id="SWIMLANE_INNER_CONTAINER_0"]/div[1]/div').click()  # right arrow
+            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, '//*[@id="SWIMLANE_INNER_CONTAINER_0"]/div[1]/div'))).click()  # left arrow
+            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located( (By.XPATH, '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_0"]/div/button/img'))).click()  # 1st box
+            self.driver.find_element(By.XPATH,'//*[@id="dish-bitmovin-player"]/div[4]/div/div[2]/div[1]/button/img').click()  # volume bar
+            self.driver.find_element(By.XPATH,'///*[@id="dish-bitmovin-player"]/div[4]/div/div[2]/div[2]/button/img').click()  # caption click
+            self.driver.find_element(By.XPATH, '//*[@id="subtitle-popper"]/div/ul/div[4]').click()  # english
+            self.driver.find_element(By.XPATH, '//*[@id="TOGGLE_FULLSCREEN_BTN"]/img').click()  # fullscreen
+            self.driver.find_element(By.XPATH, '//*[@id="PLAYER_CLOSE_BTN"]/img').click()  # third x
+            self.driver.find_element(By.XPATH, '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_1"]/div/button/img').click()  # second button click play
+            self.driver.find_element(By.XPATH, '//*[@id="PLAYER_CLOSE_BTN"]/img').click()  # 2nd box x
+            self.driver.find_element(By.XPATH,'//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_2"]/div/button/img').click()  # third button click play
+            self.driver.find_element(By.XPATH, '//*[@id="PLAYER_CLOSE_BTN"]/img').click()  # third x
+            self.driver.find_element(By.XPATH,'//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_2"]/div/button/img').click()  # fourth button click play
+            self.driver.find_element(By.XPATH, '//*[@id="PLAYER_CLOSE_BTN"]/img').click()  # fourth button  x
+            self.driver.find_element(By.XPATH,'//*[@id="SWIMLANE_INNER_CONTAINER_0"]/div[1]/div').click()  # right arrow
+            self.driver.find_element(By.XPATH, '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_4"]/div/button/img').click()  # fifth button click play
+            self.driver.find_element(By.XPATH, '//*[@id="PLAYER_CLOSE_BTN"]/img').click()  # fifth button  x
+            self.driver.find_element(By.XPATH,'//*[@id="root"]/div/div/div[1]/div/div/div/div/div[2]/h2[1]').is_displayed()  # Words News and Weather displayed
+            self.driver.find_element(By.XPATH,'//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_0"]/div/div[1]').is_displayed()  # square box
+            self.driver.find_element(By.XPATH, '// *[@ id = "ITEM_SWIMLANE_INNER_CONTAINER_0_0"] / div / div[1]').is_displayed()  # box background image
+            self.driver.find_element(By.XPATH, '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_0"]/div/div[3]/div[2]').is_displayed()  # check logo on each box
+            self.driver.find_element(By.XPATH,
+                                     '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_0"]/div/div[3]/div[3]/h2[1]').is_displayed()  ## check title
+            self.driver.find_element(By.XPATH,
+                                     '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_0"]/div/div[3]/div[3]/h2[2]').is_displayed()  # check LIVE written and time remaining
+            self.driver.find_element(By.XPATH,
+                                     '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_0"]/div/div[2]/span').is_displayed()  # live button
+
+        except NoSuchElementException:
+            self.driver.save_screenshot(self.direct + self.name + ".png")
+            body = [
+                {
+                    "measurement": "OnStream",
+                    "tags": {
+                        "Software": onstream_version,
+                        "Test": 1,
+                        "Pytest": self.name,
+                        "URL": onstream_url,
+                        "Browser": "Chrome",
+                        "Device": device,
+                    },
+                    "time": time.time_ns(),
+                    "fields": {
+                        "element_not_found": 1,
+                    }
+                }
+            ]
+            client_setup.write_points(body)
+        ## assert False, "Element was not found"
         except TimeoutException:
             self.driver.save_screenshot(self.direct + self.name + ".png")
             loading_circle = self.driver.find_elements(By.XPATH,
@@ -1172,188 +1307,6 @@ class TestHomeScreen:
                     assert False, "timeout error"
 
 
-class TestMainScreen:
-    def test_unknown(self, onstream_version, onstream_url, client_setup):
-        try:
-            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, UI_Constant.home_button))) # Wait for the Home Page to Load
-            time.sleep(5)
-            # self.driver.find_element(By.XPATH, '//*[@id="root"]/div/div/div/div[2]/div/div[1]').is_displayed()  # Black Header Banner
-            self.driver.find_element(By.XPATH, '//img[@alt="Logo"]').is_displayed()  # Dish Logo Upper Left
-            self.driver.find_element(By.XPATH, '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_0"]/div/button/img').click()  # 1st news and weather box
-            time.sleep(10)
-            self.driver.find_element(By.XPATH, '//*[@id="PLAYER_CLOSE_BTN"]/img').click()  # Close
-            time.sleep(5)
-            self.driver.find_element(By.XPATH, '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_0"]/div/div[3]/div[3]/h2[2]').click()  # Open 1s box via bottem
-            time.sleep(3)
-            self.driver.find_element(By.XPATH,  '//*[@id="root"]/div[2]/div/div[2]/div/div[2]/div/button/img').click()  # watch now
-            time.sleep(3)
-            self.driver.find_element(By.XPATH, '//*[@id="PLAYER_CLOSE_BTN"]/img').click()  # Close
-            time.sleep(7)
-            self.driver.find_element(By.XPATH,'//*[@id="SWIMLANE_INNER_CONTAINER_0"]/div[2]/div').click()  # News and weather right arrow
-            time.sleep(3)
-            self.driver.find_element(By.XPATH,'//*[@id="SWIMLANE_INNER_CONTAINER_0"]/div[1]/div').click()  # left arrow
-            time.sleep(10)
-            self.driver.find_element(By.XPATH, '//*[@id="SWIMLANE_INNER_CONTAINER_0"]/div[1]/div').click()  # right arrow
-            time.sleep(5)
-            self.driver.find_element(By.XPATH, '//*[@id="SWIMLANE_INNER_CONTAINER_0"]/div[1]/div').click()  # bottem arrow
-            time.sleep(3)
-            self.driver.find_element(By.XPATH, '//*[@id="SWIMLANE_INNER_CONTAINER_0"]/div[5]/div').click()  # top arrow remove from news and weather
-            self.driver.find_element(By.XPATH,'//*[@id="root"]/div/div/div[1]/div[2]').click()  # top arrow remove from news and weather
-
-
-
-        except NoSuchElementException:
-            self.driver.save_screenshot(self.direct + self.name + ".png")
-            body = [
-                {
-                    "measurement": "OnStream",
-                    "tags": {
-                        "Software": onstream_version,
-                        "Test": 1,
-                        "Pytest": self.name,
-                        "URL": onstream_url,
-                        "Browser": "Chrome",
-                        "Device": device,
-                    },
-                    "time": time.time_ns(),
-                    "fields": {
-                        "element_not_found": 1,
-                    }
-                }
-            ]
-            client_setup.write_points(body)
-        ## assert False, "Element was not found"
-        except TimeoutException:
-            self.driver.save_screenshot(self.direct + self.name + ".png")
-            loading_circle = self.driver.find_elements(By.XPATH,
-                                                       '//div[@class="nvI2gN1AMYiKwYvKEdfIc schema_accent_border-bottom schema_accent_border-right schema_accent_border-left"]')
-            no_streaming = self.driver.find_elements(By.XPATH,
-                                                     '//h1[contains(text(), "It appears that you are not able to connect to Streaming Services at this time.")]')
-            error_404 = self.driver.find_elements(By.XPATH, '//h1[contains(text(), "Oops! Error 404")]')
-            loading_element = self.driver.find_elements(By.XPATH, '//span[contains(text(), "Loading...")]')
-            went_wrong = self.driver.find_elements(By.XPATH,
-                                                   '//h2[contains(text(), "Something went wrong with the stream.")]')
-            if len(loading_circle) > 0:
-                body = [
-                    {
-                        "measurement": "OnStream",
-                        "tags": {
-                            "Software": onstream_version,
-                            "Test": 1,
-                            "Pytest": self.name,
-                            "URL": onstream_url,
-                            "Browser": "Chrome",
-                            "Device": device,
-                        },
-                        "time": time.time_ns(),
-                        "fields": {
-                            "loading_circle": 1,
-                        }
-                    }
-                ]
-                client_setup.write_points(body)
-                assert False, "Stuck on loading screen"
-            elif len(no_streaming) > 0:
-                body = [
-                    {
-                        "measurement": "OnStream",
-                        "tags": {
-                            "Software": onstream_version,
-                            "Test": 1,
-                            "Pytest": self.name,
-                            "URL": onstream_url,
-                            "Browser": "Chrome",
-                            "Device": device,
-                        },
-                        "time": time.time_ns(),
-                        "fields": {
-                            "unable_to_connect": 1,
-                        }
-                    }
-                ]
-                client_setup.write_points(body)
-                assert False, "It appears that you are not able to connect to Streaming Services at this time."
-            elif len(error_404) > 0:
-                body = [
-                    {
-                        "measurement": "OnStream",
-                        "tags": {
-                            "Software": onstream_version,
-                            "Test": 1,
-                            "Pytest": self.name,
-                            "URL": onstream_url,
-                            "Browser": "Chrome",
-                            "Device": device,
-                        },
-                        "time": time.time_ns(),
-                        "fields": {
-                            "error_404": 1,
-                        }
-                    }
-                ]
-                client_setup.write_points(body)
-                assert False, "404 error"
-            elif len(loading_element):
-                body = [
-                    {
-                        "measurement": "OnStream",
-                        "tags": {
-                            "Software": onstream_version,
-                            "Test": 1,
-                            "Pytest": self.name,
-                            "URL": onstream_url,
-                            "Browser": "Chrome",
-                            "Device": device,
-                        },
-                        "time": time.time_ns(),
-                        "fields": {
-                            "element_loading": 1,
-                        }
-                    }
-                ]
-                client_setup.write_points(body)
-                assert False, "Stuck loading an element"
-            elif len(went_wrong):
-                body = [
-                    {
-                        "measurement": "OnStream",
-                        "tags": {
-                            "Software": onstream_version,
-                            "Test": 1,
-                            "Pytest": self.name,
-                            "URL": onstream_url,
-                            "Browser": "Chrome",
-                            "Device": device,
-                        },
-                        "time": time.time_ns(),
-                        "fields": {
-                            "went_wrong": 1,
-                        }
-                    }
-                ]
-                client_setup.write_points(body)
-                assert False, "Something went wrong"
-            else:
-                body = [
-                    {
-                        "measurement": "OnStream",
-                        "tags": {
-                            "Software": onstream_version,
-                            "Test": 1,
-                            "Pytest": self.name,
-                            "URL": onstream_url,
-                            "Browser": "Chrome",
-                            "Device": device,
-                        },
-                        "time": time.time_ns(),
-                        "fields": {
-                            "timeout_exception": 1,
-                        }
-                    }
-                ]
-                client_setup.write_points(body)
-                assert False, "timeout error"
-
 
 @pytest.mark.usefixtures("setup", "directory")
 class TestLiveTv:
@@ -1363,21 +1316,19 @@ class TestLiveTv:
             time.sleep(3)
             self.driver.find_element(By.XPATH,UI_Constant.settings_button).click()  #Settings button
             WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, UI_Constant.guide_choice))).click() #change guide style
-            time.sleep(15)
+            time.sleep(3)
             WebDriverWait(self.driver, 60).until( ec.presence_of_element_located((By.XPATH, UI_Constant.modern_guide))).click() #modern guide
-            time.sleep(15)
+            time.sleep(3)
             WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, UI_Constant.tv_guide))).click()  # tv guide
             time.sleep(15)
-            self.driver.find_element(By.XPATH, '//*[@id="root"]/div/div/div[1]/div[2]/div/div[1]/div[2]/div[3]/img').click()  # channel right arrow
-            time.sleep(30)
-            self.driver.find_element(By.XPATH, '//*[@id="root"]/div/div/div[1]/div[2]/div/div[1]/div[2]/div[1]/img').click()  # channel left arrow
+            self.driver.find_element(By.XPATH, '//*[@id="root"]/div/div/div[1]/div[2]/div/div/div/div/div/div[1]/div/div[1]/div[2]/div').click()  # channel right arrow
+            time.sleep(15)
+            self.driver.find_element(By.XPATH, '//*[@id="root"]/div/div/div[1]/div[2]/div/div/div/div/div/div[1]/div/div[1]/div[4]/div').click()  # channel left arrow
             time.sleep(15)
             self.driver.find_element(By.XPATH,'//*[@class="_1TjpZPuLnjCBGtAtPLv7bb"]').click() #play video
-            time.sleep(15)
+            time.sleep(3)
             ##object=self.driver.switch_to.alert
             WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, UI_Constant.watch_now_button))).click()
-            time.sleep(10)
-            self.driver.find_element(By.XPATH, '//*[@id="root"]/button/div').click()  # play button video
             time.sleep(15)
             self.driver.find_element(By.XPATH, '//*[@id="dish-bitmovin-player"]/div[4]/div/div[2]/div[1]/button/img').click()  # Click volume button
             time.sleep(3)
@@ -1576,11 +1527,9 @@ class TestLiveTv:
             WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, UI_Constant.classic_guide))).click()  # classic
             WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, UI_Constant.tv_guide))).click()  # tv guide
             time.sleep(5)
-            self.driver.find_element(By.XPATH, '//*[@id="root"]/div/div/div[1]/div[2]/div/div/div/div/div/div[1]/div/div[2]/div/div/div[1]/div/div[1]/div/div/div[1]/div/div/div[2]/div[1]').click()  # click on programming
+            self.driver.find_element(By.XPATH, '//*[@id="root"]/div/div/div[1]/div[2]/div/div/div/div/div/div[1]/div/div[2]/div/div/div[1]/div/div[1]/div/div/div[2]/div/div/div[2]/div[1]').click()  # click on programming
             time.sleep(15)
             self.driver.find_element(By.XPATH,'//*[@id="root"]/div[2]/div/div[2]/div/div[2]/div/button').click()  # Click "watch now" button
-            time.sleep(15)
-            self.driver.find_element(By.XPATH,'//*[@id="root"]/button/div').click() # Click play again
             time.sleep(15)
             self.driver.find_element(By.XPATH,'//*[@id="PLAYER_CLOSE_BTN"]/img').click()  # X button close
             time.sleep(15)
@@ -1666,7 +1615,7 @@ class TestLiveTv:
                     }
                 }
             ]
-            ##client_setup.write_points(body)
+            client_setup.write_points(body)
             assert False, "Element was not found"
         except TimeoutException:
             self.driver.save_screenshot(self.direct + self.name + ".png")
@@ -1811,9 +1760,8 @@ class TestSettings:
             self.driver.find_element(By.XPATH,'//*[@id="root"]/div/div/div[1]/div[2]/div/div/div[2]/div/div/div[3]/button[2]/div[2]/div/label/div').click()  # Enable large font size
             time.sleep(3)
             WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, UI_Constant.tv_guide))).click()  # tv guide
-            time.sleep(15)
+            time.sleep(3)
             self.driver.find_element(By.XPATH, UI_Constant.settings_button).click()  # settings button
-            time.sleep(10)
             self.driver.find_element(By.XPATH,'//*[@id="root"]/div/div/div[1]/div[2]/div/div/div[2]/div/div/div[5]/button[1]').click()  # Time Format
             time.sleep(3)
             self.driver.find_element(By.XPATH,'//*[@id="root"]/div/div/div[1]/div[2]/div/div/div[2]/div/div/div[3]/button[2]').click()  # 24 hour
@@ -1821,7 +1769,6 @@ class TestSettings:
             WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, UI_Constant.tv_guide))).click()  # tv guide
             time.sleep(10)
             self.driver.find_element(By.XPATH, UI_Constant.settings_button).click()  # settings button
-            time.sleep(15)
             self.driver.find_element(By.XPATH,'//*[@id="root"]/div/div/div[1]/div[2]/div/div/div[2]/div/div/div[5]/button[2]/div[1]/span[2]').click()  # temperature format
             time.sleep(3)
             self.driver.find_element(By.XPATH,'//*[@id="root"]/div/div/div[1]/div[2]/div/div/div[2]/div/div/div[3]/button[2]').click()  # C degrees
@@ -1836,7 +1783,6 @@ class TestSettings:
             self.driver.find_element(By.XPATH, '//*[@id="root"]/div[2]/div/div[1]/img').click()  # close weather
             time.sleep(10)
             self.driver.find_element(By.XPATH, UI_Constant.settings_button).click()  # settings button
-            time.sleep(10)
             self.driver.find_element(By.XPATH, '//*[@id="FAQS"]').click()  # FAQ
             time.sleep(3)
             self.driver.find_element(By.XPATH, '//*[@id="LEGAL"]').click()  # legal and about
