@@ -18,6 +18,9 @@ def pytest_addoption(parser):
     parser.addoption("--grafana_ip", dest="grafana_ip", action="store", default="10.11.46.179", help="The IP of the Grafana instance")
     parser.addoption("--grafana_port", dest="grafana_port", action="store", default="8086", help="The IP of the Grafana instance")
     parser.addoption("--custom_logo", dest="custom_logo", action="store", default="Infio Whites", help="The Custom Logo which appears in the middle of the main page for OnStream")  #Changed the custom logo
+    parser.addoption("--mobile_device_id", dest="mobile_device_id", action="store",default="",help="Give the mobile device id. you will get it from adb device command")
+    parser.addoption("--mobile_platform", dest="mobile_platform", action="store",default="Android",
+                     help="Give the mobile Platform ")
 
 @pytest.fixture(scope="session")
 def onstream_url(request):
@@ -28,6 +31,12 @@ def onstream_url(request):
 def smartbox_ip(request):
     return request.config.getoption("--smartbox_ip")
 
+@pytest.fixture(scope="session")
+def mobile_device_id(request):
+    return request.config.getoption("--mobile_device_id")
+@pytest.fixture(scope="session")
+def mobile_platform(request):
+    return request.config.getoption("--mobile_platform")
 
 @pytest.fixture(scope="session")
 def onstream_version(request):

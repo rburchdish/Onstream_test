@@ -1818,7 +1818,7 @@ class TestSettings:
                     }
                 }
             ]
-            client_setup.write_points(body)
+            ##client_setup.write_points(body)
             assert False, "Element was not found"
         except TimeoutException:
             self.driver.save_screenshot(self.direct + self.name + ".png")

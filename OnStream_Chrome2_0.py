@@ -161,6 +161,7 @@ def setup(request, onstream_url, custom_logo):
     driver.quit()
 
 
+
 @pytest.fixture(scope="class")
 def current_time(request):
     t1 = datetime.now() + timedelta(hours=1)
@@ -1342,12 +1343,13 @@ class TestLiveTv:
             time.sleep(3)
             WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, UI_Constant.tv_guide))).click()  # tv guide
             time.sleep(10)
-            self.driver.find_element(By.XPATH, '//*[@id="root"]/div/div/div[1]/div[2]/div/div/div/div/div/div[1]/div/div[1]/div[2]/div').click()  # channel right arrow
-            time.sleep(10)
-            self.driver.find_element(By.XPATH, '//*[@id="root"]/div/div/div[1]/div[2]/div/div/div/div/div/div[1]/div/div[1]/div[4]/div').click()  # channel left arrow
-            time.sleep(15)
+            ##self.driver.find_element(By.XPATH, '//*[@id="root"]/div/div/div[1]/div[2]/div/div/div/div/div/div[1]/div/div[1]/div[2]/div').click()  # channel right arrow
+            ##time.sleep(10)
+            ##self.driver.find_element(By.XPATH, '//*[@id="root"]/div/div/div[1]/div[2]/div/div/div/div/div/div[1]/div/div[1]/div[4]/div').click()  # channel left arrow
+            ##time.sleep(15)
             self.driver.find_element(By.XPATH,'//*[@class="_1TjpZPuLnjCBGtAtPLv7bb"]').click() #play video
             time.sleep(3)
+            ##self.driver.find_element(By.XPATH, '//*[@id="root"]/div[2]/div/div[2]/div/div[2]/div/button').click()   # watch now
             ##object=self.driver.switch_to.alert
             WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, UI_Constant.watch_now_button))).click()
             time.sleep(15)
@@ -1545,14 +1547,14 @@ class TestLiveTv:
             time.sleep(3)
             WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, UI_Constant.classic_guide))).click()  # classic
             WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, UI_Constant.tv_guide))).click()  # tv guide
-            time.sleep(5)
-            self.driver.find_element(By.XPATH, '//*[@id="root"]/div/div/div[1]/div[2]/div/div/div/div/div/div[1]/div/div[2]/div/div/div[1]/div/div[1]/div/div/div[2]/div/div/div[2]/div[1]').click()  # click on programming
+            time.sleep(15)
+            self.driver.find_element(By.XPATH, '//*[@id="root"]/div/div/div[1]/div[2]/div/div/div/div/div/div[1]/div/div[2]/div/div/div[1]/div/div[1]/div/div/div[1]/div/div/div[2]/div[2]').click()  # click on programming
             time.sleep(15)
             self.driver.find_element(By.XPATH,'//*[@id="root"]/div[2]/div/div[2]/div/div[2]/div/button').click()  # Click "watch now" button
             time.sleep(15)
             self.driver.find_element(By.XPATH,'//*[@id="PLAYER_CLOSE_BTN"]/img').click()  # X button close
             time.sleep(15)
-            self.driver.find_element(By.XPATH, '//*[@class="RzTD41B7AU81NA-7nU2w0"]').click()  # play video
+            self.driver.find_element(By.XPATH, '//*[@id="root"]/div/div/div[1]/div[2]/div/div/div/div/div/div[1]/div/div[2]/div/div/div[1]/div/div[1]/div/div/div[1]/div/div/div[1]/div/div').click()  # play video
             time.sleep(15)
             self.driver.find_element(By.XPATH,'//*[@id="dish-bitmovin-player"]/div[4]/div/div[2]/div[1]/button/img').click()  # Click volume button
             time.sleep(8)

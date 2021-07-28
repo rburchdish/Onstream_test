@@ -346,49 +346,65 @@ class TestVersion:
 class TestHomeScreen:
     def test_hero_screen(self, onstream_version, onstream_url, client_setup):
         try:
-            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, UI_Constant.home_button)))  # Wait for the Home Page to Load
+            WebDriverWait(self.driver, 60).until(
+                ec.presence_of_element_located((By.XPATH, UI_Constant.home_button)))  # Wait for the Home Page to Load
             time.sleep(5)
-            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[1]/button'))).click()  # 1st button click
+            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located(
+                (By.XPATH, '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[1]/button'))).click()  # 1st button click
             time.sleep(3)
-            self.driver.find_element(By.XPATH,'//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[2]/button').click()  # Second button click
+            self.driver.find_element(By.XPATH,
+                                     '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[2]/button').click()  # Second button click
             time.sleep(3)
-            self.driver.find_element(By.XPATH,'//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[3]/button').click()  # Third button click
+            self.driver.find_element(By.XPATH,
+                                     '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[3]/button').click()  # Third button click
             time.sleep(5)
-            self.driver.find_element(By.XPATH,'//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[4]/button').click()  # Fourth button click
+            self.driver.find_element(By.XPATH,
+                                     '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[4]/button').click()  # Fourth button click
             time.sleep(15)
-            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[1]/button'))).click()  # 1st button click
+            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located(
+                (By.XPATH, '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[1]/button'))).click()  # 1st button click
             time.sleep(15)
-            self.driver.find_element(By.XPATH, '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/div/div/div[2]/div/div/div/div/div/div/button').click()  # springs pledge learn more
+            self.driver.find_element(By.XPATH,
+                                     '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/div/div/div[2]/div/div/div/div/div/div/button').click()  # springs pledge learn more
             time.sleep(10)
             ##WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/div/div/div[2]/div/div/div/div/div/div/button'))).click()  # springs pledge learn more
             ##self.driver.execute_script('arguments[0].scrollIntoView(true);', mif)  # Scroll Down to the Bottom
             ##time.sleep(5)
-            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH,'//*[@id="root"]/div[2]/div/div[2]/div[2]/button'))).click()  # more info button
+            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located(
+                (By.XPATH, '//*[@id="root"]/div[2]/div/div[2]/div[2]/button'))).click()  # more info button
             self.driver.switch_to.window(self.driver.window_handles[0])  # Switch to previous tab
             time.sleep(3)
             self.driver.fullscreen_window()
-            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[2]/button'))).click()  # second button click
+            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located(
+                (By.XPATH, '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[2]/button'))).click()  # second button click
             time.sleep(5)
-            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/div/div/div[3]/div/div/div/div/div/button'))).click()  # watch live
+            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH,
+                                                                                 '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/div/div/div[3]/div/div/div/div/div/button'))).click()  # watch live
             time.sleep(5)
             self.driver.find_element(By.XPATH, '//*[@id="PLAYER_CLOSE_BTN"]/img').click()  # Close  Live  Click
             time.sleep(5)
-            self.driver.find_element(By.XPATH,'//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[3]/button').click()  # Third button click
+            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located(
+                (By.XPATH, '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[3]/button'))).click()  # third button click
             time.sleep(10)
-            self.driver.find_element(By.XPATH,'//*[@id="HERO_CAROUSEL_CONTAINER"]/div/div/div/div[4]/div/div/div/div/div/button').click()  # watch live
+            self.driver.find_element(By.XPATH,
+                                     '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/div/div/div[4]/div/div/div/div/div/button').click()  # watch live
             time.sleep(10)
             self.driver.find_element(By.XPATH, '//*[@id="PLAYER_CLOSE_BTN"]/img').click()  # Close  Live  Click
             time.sleep(3)
-            self.driver.find_element(By.XPATH,'//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[4]/button').click()  # Fourth button click
+            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located(
+                (By.XPATH, '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[4]/button'))).click()  # fourth button click
             time.sleep(5)
-            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH,'//*[@id="HERO_CAROUSEL_CONTAINER"]/div/div/div/div[5]/div/div/div/div/div/div/button'))).click()  # resident services learn more click
+            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH,
+                                                                                 '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/div/div/div[5]/div/div/div/div/div/div/button'))).click()  # resident services learn more click
             time.sleep(3)
-            self.driver.find_element(By.XPATH,'//*[@id="root"]/div[2]/div/div[2]/div[2]/button').click()  # Resident Services learn more  click
+            self.driver.find_element(By.XPATH,
+                                     '//*[@id="root"]/div[2]/div/div[2]/div[2]/button').click()  # Resident Services learn more  click
             time.sleep(3)
             self.driver.switch_to.window(self.driver.window_handles[0])  # Switch to previous tab
             time.sleep(4)
             self.driver.fullscreen_window()
-            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, UI_Constant.home_button)))  # Wait for the Home Page to Load
+            WebDriverWait(self.driver, 60).until(
+                ec.presence_of_element_located((By.XPATH, UI_Constant.home_button)))  # Wait for the Home Page to Load
             self.driver.find_element(By.XPATH,
                                      '//*[@id="HEADER_CONTAINER"]/div[1]/img').is_displayed()  # Springs Apartments logo is displayed
             self.driver.find_element(By.XPATH,

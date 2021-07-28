@@ -10,14 +10,20 @@ from selenium.common.exceptions import NoSuchElementException, TimeoutException,
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
+from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.keys import Keys
 from datetime import datetime, timedelta
 from influxdb import InfluxDBClient
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
 from conftest import all_ld, active_service
 from UI_Constant import *
 import UI_Constant
-
-
+import logging
+import json
+logging.basicConfig(level=logging.DEBUG)
+mylogger = logging.getLogger()
 browser = os.path.basename(__file__).split("_")[1]
 plat = platform.platform().split('-')
 device = str(plat[0] + "-" + plat[1])
@@ -32,6 +38,7 @@ def client_setup(grafana_ip, grafana_port):
 @pytest.fixture(scope="session", autouse=True)
 def auto_start(request, onstream_version, onstream_url, client_setup):
     try:
+
         archive_version = os.path.abspath(os.curdir) + os.sep + 'Archived' + os.sep + onstream_version
         os.mkdir(archive_version)
     except FileNotFoundError:
@@ -61,14 +68,14 @@ def auto_start(request, onstream_version, onstream_url, client_setup):
                 "Software": onstream_version,
                 "Test": 1,
                 "URL": onstream_url,
-                "Browser": "Safari",
+                "Browser": "Chrome",
                 "Device": device,
             },
             "time": time.time_ns(),
             "fields": {
                 "events_title": "test start",
                 "text": "This is the start of test " + "1" + " on firmware " + onstream_version + " tested on " + onstream_url,
-                "tags": "Onstream" + "," + "Safari" + "," + "1" + "," + onstream_version + "," + onstream_url
+                "tags": "Onstream" + "," + "Chrome" + "," + "1" + "," + onstream_version + "," + onstream_url
             }
         }
     ]
@@ -82,14 +89,14 @@ def auto_start(request, onstream_version, onstream_url, client_setup):
                     "Software": onstream_version,
                     "Test": 1,
                     "URL": onstream_url,
-                    "Browser": "Safari",
+                    "Browser": "Chrome",
                     "Device": device,
                 },
                 "time": time.time_ns(),
                 "fields": {
                     "events_title": "test end",
                     "text": "This is the end of test " + "1" + " on firmware " + onstream_version + " tested on " + onstream_url,
-                    "tags": "Onstream" + "," + "Safari" + "," + "1" + "," + onstream_version + "," + onstream_url
+                    "tags": "Onstream" + "," + "Chrome" + "," + "1" + "," + onstream_version + "," + onstream_url
                 }
             }
         ]
@@ -132,19 +139,45 @@ def directory(request):
 
 
 @pytest.fixture(scope="class")
-def setup(request, onstream_url, custom_logo):
-    driver = webdriver.Safari(executable_path='/usr/bin/safaridriver')
+def setup(request, onstream_url, custom_logo,mobile_platform,mobile_device_id):
+    options = Options()
+    options.add_argument('--no-sandbox')
+    options.add_argument('--start-maximized')
+    options.add_argument('--disable-extensions')
+    options.add_argument('--disable-dev-shm-usage')
+    options.add_argument('--ignore-certificate-errors')
+    if mobile_platform.lower() == "Android".lower():
+        desired_caps = {
+            'platformName': 'Android',
+            'deviceName': mobile_device_id,
+            'browserName': 'Chrome',
+
+        }
+    elif mobile_platform == "ios":
+        desired_caps = {
+            'platformName': mobile_platform,
+            'deviceName': mobile_device_id,
+            'browserName': 'Safari',
+            'platformVersion': '14.6',
+            'xcodeSigningId': 'iPhone Developer',
+            'xcodeOrgId': 'QPWT4523KW',
+            'udid': '00008101-001A1D223410001E',
+        }
+
+    driver = webdriver.Remote("http://127.0.0.1:4723/wd/hub", desired_caps)
     dishtv = onstream_url
     driver.get(dishtv)
-    driver.maximize_window()
     logo = custom_logo  # Big logo on home screen
     src = driver.page_source
     request.cls.driver = driver
     request.cls.src = src
     request.cls.dishtv = dishtv
+    ##driver.fullscreen_window()
     request.cls.logo = logo
     yield
     driver.quit()
+
+
 
 @pytest.fixture(scope="class")
 def current_time(request):
@@ -342,55 +375,45 @@ class TestHomeScreen:
             time.sleep(5)
             WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[1]/button'))).click()  # 1st button click
             time.sleep(3)
-            self.driver.find_element(By.XPATH, '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[2]/button').click()  # Second button click
+            self.driver.find_element(By.XPATH,'//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[2]/button').click()  # Second button click
             time.sleep(3)
-            self.driver.find_element(By.XPATH, '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[3]/button').click()  # Third button click
+            self.driver.find_element(By.XPATH,'//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[3]/button').click()  # Third button click
             time.sleep(5)
-            self.driver.find_element(By.XPATH, '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[4]/button').click()  # Fourth button click
+            self.driver.find_element(By.XPATH,'//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[4]/button').click()  # Fourth button click
             time.sleep(15)
-            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located(
-                (By.XPATH, '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[1]/button'))).click()  # 1st button click
-            time.sleep(10)
+            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[1]/button'))).click()  # 1st button click
+            time.sleep(15)
             self.driver.find_element(By.XPATH, '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/div/div/div[2]/div/div/div/div/div/div/button').click()  # springs pledge learn more
-            time.sleep(5)
-            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located( (By.XPATH, '//*[@id="root"]/div[2]/div/div[2]/div[2]/button'))).click()  # more info button
             time.sleep(10)
+            ##WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/div/div/div[2]/div/div/div/div/div/div/button'))).click()  # springs pledge learn more
+            ##self.driver.execute_script('arguments[0].scrollIntoView(true);', mif)  # Scroll Down to the Bottom
+            ##time.sleep(5)
+            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH,'//*[@id="root"]/div[2]/div/div[2]/div[2]/button'))).click()  # more info button
             self.driver.switch_to.window(self.driver.window_handles[0])  # Switch to previous tab
-            time.sleep(10)
-            self.driver.fullscreen_window()
-            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[2]/button'))).click()  # second button click
-            time.sleep(10)
-            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH,
-                                                                                 '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/div/div/div[3]/div/div/div/div/div/button'))).click()  # watch live
-            time.sleep(5)
-            self.driver.find_element(By.XPATH, '//*[@id="root"]/button/div').click()  # click play on safari
-            time.sleep(5)
-            self.driver.find_element(By.XPATH, '//*[@id="PLAYER_CLOSE_BTN"]/img').click()  # Close  Live  Click
-            time.sleep(5)
-            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located(
-                (By.XPATH, '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[3]/button'))).click()  # third button click
-            time.sleep(10)
-            self.driver.find_element(By.XPATH,
-                                     '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/div/div/div[4]/div/div/div/div/div/button').click()  # watch live
-            time.sleep(10)
-            self.driver.find_element(By.XPATH, '//*[@id="root"]/button/div').click()  # click play on safari
-            time.sleep(15)
-            self.driver.find_element(By.XPATH, '//*[@id="PLAYER_CLOSE_BTN"]/img').click()  # Close  Live  Click
-            time.sleep(15)
-            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located(
-                (By.XPATH, '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[4]/button'))).click()  # fourth button click
-            time.sleep(5)
-            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH,
-                                                                                 '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/div/div/div[5]/div/div/div/div/div/div/button'))).click()  # resident services learn more click
             time.sleep(3)
-            self.driver.find_element(By.XPATH,
-                                     '//*[@id="root"]/div[2]/div/div[2]/div[2]/button').click()  # Resident Services learn more  click
+            ##self.driver.fullscreen_window()
+            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[2]/button'))).click()  # second button click
+            time.sleep(5)
+            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/div/div/div[3]/div/div/div/div/div/button'))).click()  # watch live
+            time.sleep(5)
+            self.driver.find_element(By.XPATH, '//*[@id="PLAYER_CLOSE_BTN"]/img').click()  # Close  Live  Click
+            time.sleep(5)
+            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located( (By.XPATH, '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[3]/button'))).click()  # third button click
+            time.sleep(10)
+            self.driver.find_element(By.XPATH,'//*[@id="HERO_CAROUSEL_CONTAINER"]/div/div/div/div[4]/div/div/div/div/div/button').click()  # watch live
+            time.sleep(10)
+            self.driver.find_element(By.XPATH, '//*[@id="PLAYER_CLOSE_BTN"]/img').click()  # Close  Live  Click
+            time.sleep(3)
+            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, '//*[@id="HERO_CAROUSEL_CONTAINER"]/div/ul/li[4]/button'))).click()  # fourth button click
+            time.sleep(5)
+            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH,'//*[@id="HERO_CAROUSEL_CONTAINER"]/div/div/div/div[5]/div/div/div/div/div/div/button'))).click()  # resident services learn more click
+            time.sleep(3)
+            self.driver.find_element(By.XPATH,'//*[@id="root"]/div[2]/div/div[2]/div[2]/button').click()  # Resident Services learn more  click
             time.sleep(3)
             self.driver.switch_to.window(self.driver.window_handles[0])  # Switch to previous tab
             time.sleep(4)
-            self.driver.fullscreen_window()
-            WebDriverWait(self.driver, 60).until(
-                ec.presence_of_element_located((By.XPATH, UI_Constant.home_button)))  # Wait for the Home Page to Load
+            ##self.driver.fullscreen_window()
+            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, UI_Constant.home_button)))  # Wait for the Home Page to Load
             self.driver.find_element(By.XPATH,
                                      '//*[@id="HEADER_CONTAINER"]/div[1]/img').is_displayed()  # Springs Apartments logo is displayed
             self.driver.find_element(By.XPATH,
@@ -423,7 +446,7 @@ class TestHomeScreen:
                 }
             ]
             client_setup.write_points(body)
-           ## assert False, "Element was not found"
+            assert False,"Element was not found"
         except TimeoutException:
             self.driver.save_screenshot(self.direct + self.name + ".png")
             loading_circle = self.driver.find_elements(By.XPATH,
@@ -557,69 +580,49 @@ class TestHomeScreen:
 
     def test_news_and_weather(self, onstream_version, onstream_url, client_setup):
         try:
-            WebDriverWait(self.driver, 60).until(
-                ec.presence_of_element_located((By.XPATH, UI_Constant.home_button)))  # Wait for the Home Page to Load
-            time.sleep(5)
-            self.driver.find_element(By.XPATH,
-                                     '//*[@id="SWIMLANE_INNER_CONTAINER_0"]/div[1]/div').click()  # right arrow
-            time.sleep(5)
-            WebDriverWait(self.driver, 80).until(ec.presence_of_element_located(
-                (By.XPATH, '//*[@id="SWIMLANE_INNER_CONTAINER_0"]/div[1]/div'))).click()  # left arrow
-            time.sleep(5)
-            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located(
-                (By.XPATH, '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_0"]/div/button/img'))).click()  # 1st box
+            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, UI_Constant.home_button)))  # Wait for the Home Page to Load
             time.sleep(3)
-            self.driver.find_element(By.XPATH,
-                                     '//*[@id="root"]/button/div').click()  # click play on safari
-            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH,
-                                                                                 '//*[@id="dish-bitmovin-player"]/div[4]/div/div[2]/div[1]/button/img'))).click()  # volume bar
+            self.driver.find_element(By.XPATH,'//*[@id="SWIMLANE_INNER_CONTAINER_0"]/div[1]/div').click()  # right arrow
             time.sleep(5)
+            WebDriverWait(self.driver, 80).until(ec.presence_of_element_located((By.XPATH, '//*[@id="SWIMLANE_INNER_CONTAINER_0"]/div[1]/div'))).click()  # left arrow
+            time.sleep(5)
+            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located( (By.XPATH, '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_0"]/div/button/img'))).click()  # 1st box
+            time.sleep(3)
+            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, '//*[@id="dish-bitmovin-player"]/div[4]/div/div[2]/div[1]/button/img'))).click()  # volume bar
+            ##time.sleep(5)
             ##WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH,'///*[@id="dish-bitmovin-player"]/div[4]/div/div[2]/div[2]/button/img'))).click()  # caption click missing because captions button is missing
             ##time.sleep(5)
             ##WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH,'//*[@id="subtitle-popper"]/div/ul/div[4]'))).click()  # english
-            time.sleep(4)
+            ##time.sleep(4)
             self.driver.find_element(By.XPATH, '//*[@id="TOGGLE_FULLSCREEN_BTN"]/img').click()  # fullscreen
             time.sleep(3)
             self.driver.find_element(By.XPATH, '//*[@id="PLAYER_CLOSE_BTN"]/img').click()  # third x
             time.sleep(2)
-            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH,
-                                                                                 '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_1"]/div/button/img'))).click()  # second button click play
+            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_1"]/div/button/img'))).click()  # second button click play
             time.sleep(5)
             self.driver.find_element(By.XPATH, '//*[@id="PLAYER_CLOSE_BTN"]/img').click()  # 2nd box x
             time.sleep(4)
-            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH,
-                                                                                 '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_2"]/div/button/img'))).click()  # third button click play
+            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_2"]/div/button/img'))).click()  # third button click play
             time.sleep(4)
             self.driver.find_element(By.XPATH, '//*[@id="PLAYER_CLOSE_BTN"]/img').click()  # third x
             time.sleep(4)
-            self.driver.find_element(By.XPATH,
-                                     '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_2"]/div/button/img').click()  # frouth button click play
+            self.driver.find_element(By.XPATH,'//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_2"]/div/button/img').click()  # frouth button click play
             time.sleep(4)
             self.driver.find_element(By.XPATH, '//*[@id="PLAYER_CLOSE_BTN"]/img').click()  # fourth button  x
-            time.sleep(10)
-            self.driver.find_element(By.XPATH,
-                                     '//*[@id="SWIMLANE_INNER_CONTAINER_0"]/div[1]/div').click()  # right arrow
-            time.sleep(10)
-            self.driver.find_element(By.XPATH,
-                                     '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_4"]/div/button/img').click()  # fifth button click play
+            time.sleep(3)
+            self.driver.find_element(By.XPATH,'//*[@id="SWIMLANE_INNER_CONTAINER_0"]/div[1]/div').click()  # right arrow
+            time.sleep(3)
+            self.driver.find_element(By.XPATH,'//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_4"]/div/button/img').click()  # fifth button click play
             time.sleep(3)
             self.driver.find_element(By.XPATH, '//*[@id="PLAYER_CLOSE_BTN"]/img').click()  # fifth button  x
             time.sleep(3)
-            self.driver.find_element(By.XPATH,
-                                     '//*[@id="root"]/div/div/div[1]/div/div/div/div/div[2]/h2[1]').is_displayed()  # Words News and Weather displayed
-            self.driver.find_element(By.XPATH,
-                                     '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_0"]/div/div[1]').is_displayed()  # square box
-            self.driver.find_element(By.XPATH,
-                                     '// *[@ id = "ITEM_SWIMLANE_INNER_CONTAINER_0_0"] / div / div[1]').is_displayed()  # box background image
-            self.driver.find_element(By.XPATH,
-                                     '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_0"]/div/div[3]/div[2]').is_displayed()  # check logo on each box
-            self.driver.find_element(By.XPATH,
-                                     '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_0"]/div/div[3]/div[3]/h2[1]').is_displayed()  ## check title
-            self.driver.find_element(By.XPATH,
-                                     '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_0"]/div/div[3]/div[3]/h2[2]').is_displayed()  # check LIVE written and time remaining
-            self.driver.find_element(By.XPATH,
-                                     '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_0"]/div/div[2]/span').is_displayed()  # live button
-
+            self.driver.find_element(By.XPATH,'//*[@id="root"]/div/div/div[1]/div/div/div/div/div[2]/h2[1]').is_displayed()  # Words News and Weather displayed
+            self.driver.find_element(By.XPATH,'//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_0"]/div/div[1]').is_displayed()  # square box
+            self.driver.find_element(By.XPATH, '// *[@ id = "ITEM_SWIMLANE_INNER_CONTAINER_0_0"] / div / div[1]').is_displayed()  # box background image
+            self.driver.find_element(By.XPATH, '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_0"]/div/div[3]/div[2]').is_displayed()  # check logo on each box
+            self.driver.find_element(By.XPATH,'//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_0"]/div/div[3]/div[3]/h2[1]').is_displayed()  ## check title
+            self.driver.find_element(By.XPATH,'//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_0"]/div/div[3]/div[3]/h2[2]').is_displayed()  # check LIVE written and time remaining
+            self.driver.find_element(By.XPATH,'//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_0"]/div/div[2]/span').is_displayed()  # live button
 
         except NoSuchElementException:
             self.driver.save_screenshot(self.direct + self.name + ".png")
@@ -640,7 +643,7 @@ class TestHomeScreen:
                     }
                 }
             ]
-            client_setup.write_points(body)
+            ##client_setup.write_points(body)
         ## assert False, "Element was not found"
         except TimeoutException:
             self.driver.save_screenshot(self.direct + self.name + ".png")
@@ -775,49 +778,37 @@ class TestHomeScreen:
 
     def test_community_information(self, onstream_version, onstream_url, client_setup):
         try:
-            WebDriverWait(self.driver, 60).until(
-                ec.presence_of_element_located((By.XPATH, UI_Constant.home_button)))  # Wait for the Home Page to Load
+            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, UI_Constant.home_button)))  # Wait for the Home Page to Load
             time.sleep(5)
-            WebDriverWait(self.driver, 80).until(ec.presence_of_element_located((By.XPATH,
-                                                                                 '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_1_0"]/div/div[1]'))).click()  # Community information Refer a Friend
+            WebDriverWait(self.driver, 80).until(ec.presence_of_element_located((By.XPATH, '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_1_0"]/div/div[1]'))).click()  #Community information Refer a Friend
             time.sleep(3)
-            self.driver.find_element(By.XPATH,
-                                     '//*[@id="root"]/div[2]/div/div[2]/div/button').click()  # More Info Button
+            self.driver.find_element(By.XPATH,'//*[@id="root"]/div[2]/div/div[2]/div/button').click()  # More Info Button
             time.sleep(3)
             self.driver.switch_to.window(self.driver.window_handles[0])  # Switch to previous tab
             self.driver.fullscreen_window()
             time.sleep(3)
-            WebDriverWait(self.driver, 60).until(
-                ec.presence_of_element_located((By.XPATH, UI_Constant.home_button)))  # Wait for the Home Page to Load
-            WebDriverWait(self.driver, 80).until(ec.presence_of_element_located((By.XPATH,
-                                                                                 '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_1_1"]/div/div[2]/div[2]/p'))).click()  # Community perks click 2
+            WebDriverWait(self.driver, 80).until(ec.presence_of_element_located( (By.XPATH, '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_1_1"]/div/div[2]/div[2]/p'))).click() # Community perks click 2
             time.sleep(3)
             mif = self.driver.find_element(By.XPATH, '//*[@id="root"]/div[2]/div/div[2]/div[2]/button')
             self.driver.execute_script('arguments[0].scrollIntoView(true);', mif)  # Scroll Down to the Bottom
             time.sleep(5)
-            self.driver.find_element(By.XPATH,
-                                     '//*[@id="root"]/div[2]/div/div[2]/div[2]/button').click()  # More Info Button
-            time.sleep(3)
+            self.driver.find_element(By.XPATH,'//*[@id="root"]/div[2]/div/div[2]/div[2]/button').click()  # More Info Button
             self.driver.switch_to.window(self.driver.window_handles[0])  # Switch to previous tab
             self.driver.fullscreen_window()
             time.sleep(5)
-            WebDriverWait(self.driver, 80).until(ec.presence_of_element_located(
-                (By.XPATH, '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_1_2"]/div/div[1]'))).click()  # resident services
+            WebDriverWait(self.driver, 80).until(ec.presence_of_element_located( (By.XPATH, '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_1_2"]/div/div[1]'))).click()  #resident services
             mif = self.driver.find_element(By.XPATH, '//*[@id="root"]/div[2]/div/div[2]/div[2]/button')
             self.driver.execute_script('arguments[0].scrollIntoView(true);', mif)  # Scroll Down to the Bottom
             time.sleep(5)
-            self.driver.find_element(By.XPATH,
-                                     '//*[@id="root"]/div[2]/div/div[2]/div[2]/button').click()  # More Info Button
+            self.driver.find_element(By.XPATH,'//*[@id="root"]/div[2]/div/div[2]/div[2]/button').click()  # More Info Button
             time.sleep(3)
             self.driver.switch_to.window(self.driver.window_handles[0])  # Switch to previous tab
             time.sleep(3)
             self.driver.fullscreen_window()
             time.sleep(3)
-            WebDriverWait(self.driver, 80).until(ec.presence_of_element_located((By.XPATH,
-                                                                                 '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_1_3"]/div/div[2]/div[2]/p'))).click()  # springs pledge
+            WebDriverWait(self.driver, 80).until(ec.presence_of_element_located( (By.XPATH, '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_1_3"]/div/div[2]/div[2]/p'))).click()  # springs pledge
             time.sleep(3)
-            self.driver.find_element(By.XPATH,
-                                     '//*[@id="root"]/div[2]/div/div[2]/div[2]/button').click()  # More Info Button
+            self.driver.find_element(By.XPATH,'//*[@id="root"]/div[2]/div/div[2]/div[2]/button').click()  # More Info Button
             time.sleep(3)
             mif = self.driver.find_element(By.XPATH, '//*[@id="root"]/div[2]/div/div[2]/div[2]/button')
             self.driver.execute_script('arguments[0].scrollIntoView(true);', mif)  # Scroll Down to the Bottom
@@ -826,18 +817,12 @@ class TestHomeScreen:
             time.sleep(15)
             wea = self.driver.find_element(By.XPATH, '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_2_0"]/div/div')
             time.sleep(10)
-            self.driver.find_element(By.XPATH,
-                                     '//*[@id="root"]/div/div/div[1]/div/div/div/div/div[2]/h2[2]').is_displayed()  # Words community information shown
-            self.driver.find_element(By.XPATH,
-                                     '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_1_0"]/div').is_displayed()  # square box
-            self.driver.find_element(By.XPATH,
-                                     '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_1_0"]/div/div[1]').is_displayed()  # box background image
-            self.driver.find_element(By.XPATH,
-                                     '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_1_0"]/div/div[3]/div[1]/img').is_displayed()  # check words AD on first box
-            self.driver.find_element(By.XPATH,
-                                     '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_1_0"]/div/div[3]/div[2]/h2').is_displayed()  ## check title
-            self.driver.find_element(By.XPATH,
-                                     '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_1_0"]/div/div[3]/div[2]/p').is_displayed()  # description
+            self.driver.find_element(By.XPATH,'//*[@id="root"]/div/div/div[1]/div/div/div/div/div[2]/h2[2]').is_displayed()  # Words community information shown
+            self.driver.find_element(By.XPATH,'//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_1_0"]/div').is_displayed()  # square box
+            self.driver.find_element(By.XPATH,'//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_1_0"]/div/div[1]').is_displayed()  # box background image
+            self.driver.find_element(By.XPATH,'//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_1_0"]/div/div[3]/div[1]/img').is_displayed()  # check words AD on first box
+            self.driver.find_element(By.XPATH,'//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_1_0"]/div/div[3]/div[2]/h2').is_displayed()  ## check title
+            self.driver.find_element(By.XPATH,'//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_1_0"]/div/div[3]/div[2]/p').is_displayed()  # description
 
 
         except NoSuchElementException:
@@ -991,26 +976,25 @@ class TestHomeScreen:
                 ]
                 client_setup.write_points(body)
                 assert False, "timeout error"
-    def test_for_you_homepage(self, onstream_version, onstream_url, client_setup):
+    def test_for_you(self, onstream_version, onstream_url, client_setup):
         try:
             WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, UI_Constant.home_button)))  # Wait for the Home Page to Load
             time.sleep(10)
-            self.driver.find_element(By.XPATH,'//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_2_0"]/div/div').click()  # weather
+            WebDriverWait(self.driver, 80).until(ec.presence_of_element_located((By.XPATH, '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_2_0"]/div/div'))).click()  # weather
             time.sleep(5)
             self.driver.find_element(By.XPATH, '//*[@id="root"]/div[2]/div/div[1]/img').click()  # close weather
             time.sleep(10)
-            self.driver.find_element(By.XPATH,'//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_2_2"]/div/div/div[2]').click()  #  pet friendly
+            WebDriverWait(self.driver, 80).until(ec.presence_of_element_located((By.XPATH, '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_2_2"]/div/div/div[2]'))).click() # pet friendly
             time.sleep(4)
             self.driver.find_element(By.XPATH, '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_2_2_MODAL_BUTTON"]').click()  # more info pet friendly
-            self.driver.switch_to.window(self.driver.window_handles[0])  # Switch to previous tab
-            time.sleep(5)
-            self.driver.fullscreen_window()
-            self.driver.find_element(By.XPATH,'//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_2_3"]/div/div/div[2]').click()  # youre home blog click
-            time.sleep(10)
-            self.driver.find_element(By.XPATH,'//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_2_3"]/div/div/div[2]').click()  # more info youre home block click
-            time.sleep(5)
-            self.driver.switch_to.window(self.driver.window_handles[0])  # Switch to previous tab
             time.sleep(3)
+            self.driver.switch_to.window(self.driver.window_handles[0])  # Switch to previous tab
+            self.driver.fullscreen_window()
+            WebDriverWait(self.driver, 80).until(ec.presence_of_element_located((By.XPATH, '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_2_3"]/div/div/div[2]'))).click()  # youre home blog click
+            time.sleep(3)
+            self.driver.find_element(By.XPATH,'//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_2_3_MODAL_BUTTON"]').click()  # more info youre home block click
+            time.sleep(3)
+            self.driver.switch_to.window(self.driver.window_handles[0])  # Switch to previous tab
             self.driver.fullscreen_window()
             self.driver.find_element(By.XPATH,'//*[@id="root"]/div/div/div[1]/div/div/div/div/div[2]/h2[3]').is_displayed()  # Words for you shown
             self.driver.find_element(By.XPATH,'//*[@id="SWIMLANE_INNER_CONTAINER_2"]/div/div/div/div[1]').is_displayed()  # square box
@@ -1176,7 +1160,7 @@ class TestHomeScreen:
     def test_sports_buttons(self, onstream_version, onstream_url, client_setup):
             try:
                 WebDriverWait(self.driver, 60).until(  ec.presence_of_element_located((By.XPATH, UI_Constant.home_button)))
-                time.sleep(10)
+                time.sleep(3)
                 arrow = self.driver.find_element(By.XPATH,'//*[@alt="Arrow"]')  # Right arrow button on small widgets
                 #time.sleep(10)
                 actions = ActionChains(self.driver)
@@ -1370,23 +1354,22 @@ class TestLiveTv:
             WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, UI_Constant.home_button)))
             time.sleep(3)
             self.driver.find_element(By.XPATH,UI_Constant.settings_button).click()  #Settings button
-            time.sleep(5)
             WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, UI_Constant.guide_choice))).click() #change guide style
-            time.sleep(10)
+            time.sleep(3)
             WebDriverWait(self.driver, 60).until( ec.presence_of_element_located((By.XPATH, UI_Constant.modern_guide))).click() #modern guide
-            time.sleep(10)
+            time.sleep(3)
             WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, UI_Constant.tv_guide))).click()  # tv guide
-            time.sleep(15)
-            self.driver.find_element(By.XPATH, '//*[@id="root"]/div/div/div[1]/div[2]/div/div/div/div/div/div[1]/div/div[1]/div[2]/div').click()  # channel right arrow
-            time.sleep(15)
-            self.driver.find_element(By.XPATH, '//*[@id="root"]/div/div/div[1]/div[2]/div/div/div/div/div/div[1]/div/div[1]/div[4]/div').click()  # channel left arrow
-            time.sleep(15)
+            time.sleep(10)
+            ##self.driver.find_element(By.XPATH, '//*[@id="root"]/div/div/div[1]/div[2]/div/div/div/div/div/div[1]/div/div[1]/div[2]/div').click()  # channel right arrow
+            ##time.sleep(10)
+            ##self.driver.find_element(By.XPATH, '//*[@id="root"]/div/div/div[1]/div[2]/div/div/div/div/div/div[1]/div/div[1]/div[4]/div').click()  # channel left arrow
+            ##time.sleep(15)
             self.driver.find_element(By.XPATH,'//*[@class="_1TjpZPuLnjCBGtAtPLv7bb"]').click() #play video
             time.sleep(3)
+            ##self.driver.find_element(By.XPATH, '//*[@id="root"]/div[2]/div/div[2]/div/div[2]/div/button').click()   # watch now
             ##object=self.driver.switch_to.alert
-            ##WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, UI_Constant.watch_now_button))).click()
-            self.driver.find_element(By.XPATH, '//*[@id="root"]/div[2]/div/div[2]/div/div[2]/div/button').click()  # watch now button
-            time.sleep(10)
+            WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, UI_Constant.watch_now_button))).click()
+            time.sleep(15)
             self.driver.find_element(By.XPATH, '//*[@id="dish-bitmovin-player"]/div[4]/div/div[2]/div[1]/button/img').click()  # Click volume button
             time.sleep(3)
             self.driver.find_element(By.XPATH, '//*[@id="dish-bitmovin-player"]/div[4]/div/div[2]/div[2]/button/img').click()  # Click CC button
@@ -1419,9 +1402,7 @@ class TestLiveTv:
                                      '//*[@id="root"]/div/div/div[1]/div[2]/div/div[1]/div[2]/div[2]/div/div[1]/div/div/div[1]').is_displayed()  #box
             self.driver.find_element(By.XPATH,
                                      '//*[@id="root"]/div/div/div[1]/div[2]/div/div[1]').is_displayed()  # 1 inch of space inbetween next show
-            self.driver.find_element(By.XPATH, '//*[@id="root"]/div/div/div[1]/div[2]/div/div[1]/div[1]').is_displayed()  # logo
-
-
+            self.driver.find_element(By.XPATH, '//*[@id="root"]/div/div/div[1]/div[2]/div/div[1]/div[1]').is_displayed() # logo
 
         except NoSuchElementException:
             self.driver.save_screenshot(self.direct + self.name + ".png")
@@ -1442,7 +1423,7 @@ class TestLiveTv:
                     }
                 }
             ]
-            client_setup.write_points(body)
+            ##client_setup.write_points(body)
             assert False, "Element was not found"
         except TimeoutException:
             self.driver.save_screenshot(self.direct + self.name + ".png")
@@ -1579,21 +1560,18 @@ class TestLiveTv:
             WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, UI_Constant.home_button)))
             time.sleep(3)
             self.driver.find_element(By.XPATH, UI_Constant.settings_button).click()  # Settings button
-            time.sleep(3)
             WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, UI_Constant.guide_choice))).click()  # change guide style
             time.sleep(3)
             WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, UI_Constant.classic_guide))).click()  # classic
             WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, UI_Constant.tv_guide))).click()  # tv guide
-            time.sleep(5)
-            self.driver.find_element(By.XPATH, '//*[@id="root"]/div/div/div[1]/div[2]/div/div/div/div/div/div[1]/div/div[2]/div/div/div[1]/div/div[1]/div/div/div[2]/div/div/div[2]/div[1]').click()  # click on programming
+            time.sleep(15)
+            self.driver.find_element(By.XPATH, '//*[@id="root"]/div/div/div[1]/div[2]/div/div/div/div/div/div[1]/div/div[2]/div/div/div[1]/div/div[1]/div/div/div[1]/div/div/div[2]/div[2]').click()  # click on programming
             time.sleep(15)
             self.driver.find_element(By.XPATH,'//*[@id="root"]/div[2]/div/div[2]/div/div[2]/div/button').click()  # Click "watch now" button
-            time.sleep(10)
-            self.driver.find_element(By.XPATH,  '//*[@id="root"]/button/div').click()  # click play on safari
-            time.sleep(5)
+            time.sleep(15)
             self.driver.find_element(By.XPATH,'//*[@id="PLAYER_CLOSE_BTN"]/img').click()  # X button close
             time.sleep(15)
-            self.driver.find_element(By.XPATH, '//*[@class="RzTD41B7AU81NA-7nU2w0"]').click()  # play video
+            self.driver.find_element(By.XPATH, '//*[@id="root"]/div/div/div[1]/div[2]/div/div/div/div/div/div[1]/div/div[2]/div/div/div[1]/div/div[1]/div/div/div[1]/div/div/div[1]/div/div').click()  # play video
             time.sleep(15)
             self.driver.find_element(By.XPATH,'//*[@id="dish-bitmovin-player"]/div[4]/div/div[2]/div[1]/button/img').click()  # Click volume button
             time.sleep(8)
@@ -1615,7 +1593,6 @@ class TestLiveTv:
             self.driver.find_element(By.XPATH,'//*[@id="root"]/div/div/div[1]/div[2]/div/div/div/div/div/div[1]/div/div[2]/div/div/div[1]/div/div[1]/div/div/div[1]/div/div/div[2]/div[1]').is_displayed()  # title
             self.driver.find_element(By.XPATH,'//*[@id="root"]/div/div/div[1]/div[2]/div/div/div/div/div/div[1]/div/div[2]/div/div/div[1]/div/div[1]/div/div/div[1]/div/div/div[2]/div[2]').is_displayed()  # description
             self.driver.find_element(By.XPATH,'//*[@id="root"]/div/div/div[1]/div[2]/div/div/div/div/div/div[3]/div[2]/div/div[1]/div/img').is_displayed()  # logo
-
 
 
             logos = self.driver.find_elements(By.XPATH, '//*[@class="_3f53WAdXRRgvavG8gcvjRb"]')  # Channel Logos
@@ -1822,7 +1799,6 @@ class TestSettings:
             WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, UI_Constant.tv_guide))).click()  # tv guide
             time.sleep(3)
             self.driver.find_element(By.XPATH, UI_Constant.settings_button).click()  # settings button
-            time.sleep(5)
             self.driver.find_element(By.XPATH,'//*[@id="root"]/div/div/div[1]/div[2]/div/div/div[2]/div/div/div[5]/button[1]').click()  # Time Format
             time.sleep(3)
             self.driver.find_element(By.XPATH,'//*[@id="root"]/div/div/div[1]/div[2]/div/div/div[2]/div/div/div[3]/button[2]').click()  # 24 hour
@@ -1830,14 +1806,13 @@ class TestSettings:
             WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, UI_Constant.tv_guide))).click()  # tv guide
             time.sleep(10)
             self.driver.find_element(By.XPATH, UI_Constant.settings_button).click()  # settings button
-            time.sleep(5)
             self.driver.find_element(By.XPATH,'//*[@id="root"]/div/div/div[1]/div[2]/div/div/div[2]/div/div/div[5]/button[2]/div[1]/span[2]').click()  # temperature format
             time.sleep(3)
             self.driver.find_element(By.XPATH,'//*[@id="root"]/div/div/div[1]/div[2]/div/div/div[2]/div/div/div[3]/button[2]').click()  # C degrees
             time.sleep(3)
             self.driver.find_element(By.XPATH,'//*[@id="HEADER_CONTAINER"]/div[2]/nav/div/button[1]').click()  # home
             ##WebDriverWait(self.driver, 60).until(ec.presence_of_element_located((By.XPATH, UI_Constant.home_button)))  # Wait for the Home Page to Load
-            ##time.sleep(10)
+            ##time.sleep(10) ( removed due to xpath inactive )
             ##self.driver.execute_script('arguments[0].scrollIntoView(true)')  # Scroll Down to the Bottom
             time.sleep(15)
             self.driver.find_element(By.XPATH,'//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_2_0"]/div/div').click()  # weather
@@ -1845,7 +1820,6 @@ class TestSettings:
             self.driver.find_element(By.XPATH, '//*[@id="root"]/div[2]/div/div[1]/img').click()  # close weather
             time.sleep(10)
             self.driver.find_element(By.XPATH, UI_Constant.settings_button).click()  # settings button
-            time.sleep(3)
             self.driver.find_element(By.XPATH, '//*[@id="FAQS"]').click()  # FAQ
             time.sleep(3)
             self.driver.find_element(By.XPATH, '//*[@id="LEGAL"]').click()  # legal and about
