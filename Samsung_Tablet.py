@@ -140,12 +140,7 @@ def directory(request):
 
 @pytest.fixture(scope="class")
 def setup(request, onstream_url, custom_logo,mobile_platform,mobile_device_id):
-    options = Options()
-    options.add_argument('--no-sandbox')
-    options.add_argument('--start-maximized')
-    options.add_argument('--disable-extensions')
-    options.add_argument('--disable-dev-shm-usage')
-    options.add_argument('--ignore-certificate-errors')
+
     if mobile_platform.lower() == "Android".lower():
         desired_caps = {
             'platformName': 'Android',
@@ -153,7 +148,12 @@ def setup(request, onstream_url, custom_logo,mobile_platform,mobile_device_id):
             'browserName': 'Chrome',
 
         }
-    elif mobile_platform == "ios":
+    elif mobile_platform == "ios":options = Options()
+    options.add_argument('--no-sandbox')
+    options.add_argument('--start-maximized')
+    options.add_argument('--disable-extensions')
+    options.add_argument('--disable-dev-shm-usage')
+    options.add_argument('--ignore-certificate-errors')
         desired_caps = {
             'platformName': mobile_platform,
             'deviceName': mobile_device_id,
@@ -452,6 +452,7 @@ class TestHomeScreen:
             self.driver.find_element(By.XPATH, '//*[@id="SWIMLANE_INNER_CONTAINER_0"]/div[1]/div').click()  # left arrow
             time.sleep(3)
             self.driver.find_element(By.XPATH, '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_0_1"]/div').click()  # MLB
+            time.sleep(3) ##
             time.sleep(3)
 
         except NoSuchElementException:
@@ -1578,7 +1579,7 @@ class TestLiveTv:
                                      '//*[@id="root"]/div/div/div[1]/div[2]/div/div[1]').is_displayed()  # 1 inch of space inbetween next show
             self.driver.find_element(By.XPATH,
                                      '//*[@id="root"]/div/div/div[1]/div[2]/div/div[1]/div[1]').is_displayed()  # logo
-            
+            å
         except NoSuchElementException:
             self.driver.save_screenshot(self.direct + self.name + ".png")
             body = [

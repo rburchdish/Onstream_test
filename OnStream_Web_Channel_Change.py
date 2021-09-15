@@ -356,7 +356,12 @@ class WebDrivers(object):
                         "text": "This is the end of test " + mc.get_value() + " on firmware " + version + " tested on " + ChannelCount.dishtv,
                         "tags": "Onstream" + "," + "Edge" + "," + mc.get_value() + "," + version + "," + ChannelCount.dishtv
                     }
-                }
+                } ## Remove top grid to take the top remoe the weight
+                ## client.write_points
+                ## remove the top layer and then
+                        "time": time.time_ns()
+                        "fields": {
+                        "events_title": "test_end",
             ]
             client.write_points(test_end)
         except NoSuchElementException:
@@ -741,6 +746,7 @@ class WebDrivers(object):
         driver = webdriver.Opera(executable_path=OperaDriverManager().install())
         driver.get(self.dishtv)
         driver.quit()
+        ##remove the top side to remove
 
 
 class CountRun:
@@ -795,3 +801,7 @@ if __name__ == "__main__":
     t1 = Thread(target=pytest_run)
     t1.start()
     t1.join()
+
+
+## remove the top channel.
+## remove the top channel to make spaces.

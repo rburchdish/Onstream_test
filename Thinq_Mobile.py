@@ -639,6 +639,7 @@ class TestHomeScreen:
             time.sleep(10)
             self.driver.find_element(By.XPATH, '//*[@id="PLAYER_CLOSE_BTN"]/img').click()  # 2nd box x
             time.sleep(10)
+            ## remove this and remove the self.driver.find_element(By.XPATH, 'top the back' ## remove the top 
             more_button = self.driver.find_element(By.XPATH, '//*[@id="root"]/div/div/div[1]/div[2]/div/div/div/div[2]/div[1]/button')  # defining for scrolling
             self.driver.execute_script('arguments[0].scrollIntoView(true);', more_button)  # Scroll Down to the Bottom
             time.sleep(5)

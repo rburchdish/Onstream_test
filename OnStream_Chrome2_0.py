@@ -860,7 +860,9 @@ class TestHomeScreen:
             self.driver.fullscreen_window()
             time.sleep(15)
             wea = self.driver.find_element(By.XPATH, '//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_2_0"]/div/div')
-            time.sleep(10)
+            time.sleep(10) # after this is bullshit remove them
+            self.driver.find_element(By.XPATH, '//*[@id="root"]/div/div/div[1]/div[2]/div/div[2]/div[2]/div[2]/div/div[1]/div/div/div[1]/div[1]/div/div ').is_displayed()  # Words communitity an remove this
+            self.driver.find_element(By.XPATH, '//*[@id="root"]/div/div/div[1]/div[2]/div/div[1]/div[2]/div[2]/div/div[1]/div/div/div[1]/div[1]/div/div (large main issue) ').is_displayed()  # Words community information shown
             self.driver.find_element(By.XPATH,'//*[@id="root"]/div/div/div[1]/div/div/div/div/div[2]/h2[2]').is_displayed()  # Words community information shown
             self.driver.find_element(By.XPATH,'//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_1_0"]/div').is_displayed()  # square box
             self.driver.find_element(By.XPATH,'//*[@id="ITEM_SWIMLANE_INNER_CONTAINER_1_0"]/div/div[1]').is_displayed()  # box background image
